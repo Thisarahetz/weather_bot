@@ -42,5 +42,6 @@ def get_forecasts(lat, lon):
     return "".join(results[:10])
 
 
+# testing use let and lon
 if __name__ == "__main__":
     print(get_forecasts(-1.2, 36))

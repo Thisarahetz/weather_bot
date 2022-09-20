@@ -1,6 +1,7 @@
 from telegram.ext import Updater, CommandHandler, ContextTypes, MessageHandler, Filters, CallbackQueryHandler
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from weather import get_forecasts
 import os
 from dotenv import load_dotenv
 
@@ -42,7 +43,7 @@ updater.dispatcher.add_handler(echo_handler)
 
 def option(update, context):
     button = [
-        [InlineKeyboardButton("Option 1", callback_data="1"),
+        [InlineKeyboardButton("Check weather", callback_data="1"),
          InlineKeyboardButton("Option 2", callback_data="2")],
         [InlineKeyboardButton("Option 3", callback_data="3")]
     ]
@@ -54,7 +55,6 @@ def option(update, context):
 
 def button_click(update, context):
     query = update.callback_query
-
     context.bot.edit_message_text(chat_id=query.message.chat_id,
                                   text="Thanks for choosing {}.".format(query.data),
                                   message_id=query.message.message_id)
@@ -68,6 +68,15 @@ option_handler = CommandHandler("option", option)
 updater.dispatcher.add_handler(option_handler)
 
 
+def location(update, context):
+    lat = update.message.location.latitude
+    lon = update.message.location.longitude
+    forecast = get_forecasts(lat, lon)
+    context.bot.sendMessage(chat_id=update.message.chat_id,
+                            text=forecast,
+                            reply_markup=ReplyKeyboardRemove())
+
+
 def get_location(update, context):
     button = [
         [KeyboardButton("Share Location", request_location=True)]
@@ -78,16 +87,8 @@ def get_location(update, context):
                             reply_markup=reply_markup)
 
 
-get_location_handler = CommandHandler("location", get_location)
+get_location_handler = CommandHandler("weather", get_location)
 updater.dispatcher.add_handler(get_location_handler)
-
-
-def location(update, context):
-    lat = update.message.location.latitude
-    lon = update.message.location.longitude
-    context.bot.sendMessage(chat_id=update.message.chat_id,
-                            text="Longitude : {} Latitude : {}".format(lon, lat),
-                            reply_markup=ReplyKeyboardRemove())
 
 
 location_handler = MessageHandler(Filters.location, location)
